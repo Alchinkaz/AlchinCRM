@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,6 +13,16 @@ export default function CRMLoginPage() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    // Проверяем, не авторизован ли уже пользователь
+    const token = localStorage.getItem('crm_token');
+    if (token) {
+      router.push('/crm/dashboard');
+    }
+  }, [router]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,6 +42,7 @@ export default function CRMLoginPage() {
         localStorage.setItem('crm_token', data.token);
         localStorage.setItem('crm_user', JSON.stringify(data.user));
         router.push('/crm/dashboard');
+        router.refresh();
       } else {
         setError(data.error || 'Ошибка входа');
       }
@@ -42,11 +53,21 @@ export default function CRMLoginPage() {
     }
   };
 
+  if (!mounted) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <p>Загрузка...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-      <Card className="w-full max-w-md">
+      <Card className="w-full max-w-md shadow-lg">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">CRM Система</CardTitle>
+          <CardTitle className="text-2xl font-bold text-center">Alchin CRM</CardTitle>
           <CardDescription className="text-center">
             Войдите в систему для продолжения
           </CardDescription>
@@ -63,6 +84,7 @@ export default function CRMLoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 disabled={loading}
+                className="w-full"
               />
             </div>
             <div className="space-y-2">
@@ -75,10 +97,11 @@ export default function CRMLoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 disabled={loading}
+                className="w-full"
               />
             </div>
             {error && (
-              <div className="text-sm text-red-600 bg-red-50 p-3 rounded-md">
+              <div className="text-sm text-red-600 bg-red-50 p-3 rounded-md border border-red-200">
                 {error}
               </div>
             )}
