@@ -15,8 +15,8 @@ INSERT INTO crm_users (email, password_hash, full_name, role_id, is_active)
 SELECT 
   'admin@test.kz',
   -- Хеш для пароля "Admin123!" с JWT_SECRET = 'your-secret-key-change-in-production'
-  -- Если у вас другой JWT_SECRET в Vercel, замените этот хеш
-  'a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2',
+  -- Если у вас другой JWT_SECRET в Vercel, нужно пересчитать хеш
+  'c34671b922295503ea644790945ed015936338c4a89e1dfcc58c00110b8eda5f',
   'Тестовый Администратор',
   (SELECT id FROM crm_roles WHERE name = 'admin' LIMIT 1),
   true
