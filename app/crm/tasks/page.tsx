@@ -24,21 +24,45 @@ export default function CRMTasksPage() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<any>(null);
-
-  const user = JSON.parse(localStorage.getItem('crm_user') || '{}');
-  const role = user.crm_roles?.name;
-  const isInstaller = role === 'installer';
+  const [user, setUser] = useState<any>(null);
+  const [isInstaller, setIsInstaller] = useState(false);
 
   useEffect(() => {
-    fetchTasks();
-  }, [statusFilter]);
+    // Получаем пользователя только на клиенте
+    if (typeof window !== 'undefined') {
+      const userData = localStorage.getItem('crm_user');
+      if (userData) {
+        const parsedUser = JSON.parse(userData);
+        setUser(parsedUser);
+        setIsInstaller(parsedUser.crm_roles?.name === 'installer');
+      } else {
+        // Моковый пользователь для тестового режима
+        const mockUser = {
+          id: 'test-user-id',
+          email: 'admin@test.kz',
+          full_name: 'Тестовый Администратор',
+          crm_roles: { name: 'admin' },
+        };
+        setUser(mockUser);
+        setIsInstaller(false);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (user) {
+      fetchTasks();
+    }
+  }, [statusFilter, user]);
 
   const fetchTasks = async () => {
+    if (!user) return;
+    
     try {
-      const token = localStorage.getItem('crm_token');
+      const token = typeof window !== 'undefined' ? localStorage.getItem('crm_token') : 'test-token';
       let url = '/api/crm/tasks';
       
-      if (isInstaller) {
+      if (isInstaller && user.id) {
         url += `?assigned_to=${user.id}`;
       } else if (statusFilter !== 'all') {
         url += `?status=${statusFilter}`;
@@ -93,7 +117,7 @@ export default function CRMTasksPage() {
 
   const handleStatusChange = async (taskId: string, newStatus: string) => {
     try {
-      const token = localStorage.getItem('crm_token');
+      const token = typeof window !== 'undefined' ? localStorage.getItem('crm_token') : 'test-token';
       const response = await fetch(`/api/crm/tasks/${taskId}`, {
         method: 'PATCH',
         headers: {
@@ -318,7 +342,7 @@ function TaskForm({ onSuccess }: { onSuccess: () => void }) {
     setLoading(true);
 
     try {
-      const token = localStorage.getItem('crm_token');
+      const token = typeof window !== 'undefined' ? localStorage.getItem('crm_token') : 'test-token';
       const response = await fetch('/api/crm/tasks', {
         method: 'POST',
         headers: {
@@ -470,7 +494,7 @@ function TaskFileUpload({ taskId, onSuccess }: { taskId: string; onSuccess: () =
       formData.append('file', file);
       formData.append('task_id', taskId);
 
-      const token = localStorage.getItem('crm_token');
+      const token = typeof window !== 'undefined' ? localStorage.getItem('crm_token') : 'test-token';
       const response = await fetch('/api/crm/tasks/files', {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },

@@ -29,7 +29,7 @@ export default function CRMDealsPage() {
 
   const fetchDeals = async () => {
     try {
-      const token = localStorage.getItem('crm_token');
+      const token = typeof window !== 'undefined' ? localStorage.getItem('crm_token') : 'test-token';
       const url = statusFilter !== 'all' 
         ? `/api/crm/deals?status=${statusFilter}`
         : '/api/crm/deals';
@@ -204,7 +204,7 @@ function DealForm({ onSuccess }: { onSuccess: () => void }) {
     setLoading(true);
 
     try {
-      const token = localStorage.getItem('crm_token');
+      const token = typeof window !== 'undefined' ? localStorage.getItem('crm_token') : 'test-token';
       const response = await fetch('/api/crm/deals', {
         method: 'POST',
         headers: {

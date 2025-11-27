@@ -16,7 +16,7 @@ export default function CRMFinancePage() {
 
   const fetchFinance = async () => {
     try {
-      const token = localStorage.getItem('crm_token');
+      const token = typeof window !== 'undefined' ? localStorage.getItem('crm_token') : 'test-token';
       const response = await fetch('/api/crm/finance', {
         headers: { Authorization: `Bearer ${token}` },
       });

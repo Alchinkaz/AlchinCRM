@@ -38,7 +38,7 @@ export default function CRMGPSPage() {
 
   const fetchDevices = async () => {
     try {
-      const token = localStorage.getItem('crm_token');
+      const token = typeof window !== 'undefined' ? localStorage.getItem('crm_token') : 'test-token';
       const response = await fetch('/api/crm/gps', {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -207,7 +207,7 @@ function GPSDeviceForm({ onSuccess }: { onSuccess: () => void }) {
     setLoading(true);
 
     try {
-      const token = localStorage.getItem('crm_token');
+      const token = typeof window !== 'undefined' ? localStorage.getItem('crm_token') : 'test-token';
       const response = await fetch('/api/crm/gps', {
         method: 'POST',
         headers: {
@@ -338,7 +338,7 @@ function GPSCommandForm({ deviceId, onSuccess }: { deviceId?: string; onSuccess:
 
     setLoading(true);
     try {
-      const token = localStorage.getItem('crm_token');
+      const token = typeof window !== 'undefined' ? localStorage.getItem('crm_token') : 'test-token';
       const response = await fetch(`/api/crm/gps/${deviceId}/command`, {
         method: 'POST',
         headers: {
