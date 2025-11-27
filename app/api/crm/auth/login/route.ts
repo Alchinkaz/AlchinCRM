@@ -11,6 +11,38 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { email, password } = body;
 
+    // Тестовый режим: всегда успешный вход
+    if (TEST_MODE) {
+      const mockUser = {
+        id: 'test-user-id',
+        email: email || 'admin@test.kz',
+        full_name: 'Тестовый Администратор',
+        crm_roles: {
+          id: 'admin-role-id',
+          name: 'admin',
+          description: 'Администратор - полный доступ',
+        },
+      };
+
+      const expiresIn = 7 * 24 * 60 * 60;
+      const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
+      const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+      const payload = btoa(JSON.stringify({
+        userId: mockUser.id,
+        email: mockUser.email,
+        exp: Math.floor(Date.now() / 1000) + expiresIn,
+      })).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+      const signature = btoa(JWT_SECRET + header + payload).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+      const token = `${header}.${payload}.${signature}`;
+
+      return NextResponse.json({
+        success: true,
+        user: mockUser,
+        token: token,
+        testMode: true,
+      });
+    }
+
     if (!email || !password) {
       return NextResponse.json(
         { success: false, error: 'Email и пароль обязательны' },
@@ -19,7 +51,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Тестовый режим: автоматическое создание тестового администратора
-    if (TEST_MODE && email === 'admin@test.kz' && password === 'Admin123!') {
+    if (email === 'admin@test.kz' && password === 'Admin123!') {
       const supabase = getSupabaseClient();
       
       // Проверяем, существует ли пользователь

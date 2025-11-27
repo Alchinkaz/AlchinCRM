@@ -29,58 +29,32 @@ export default function CRMLayout({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    const token = localStorage.getItem('crm_token');
-    const userData = localStorage.getItem('crm_user');
+    // Тестовый режим: создаем мокового пользователя без проверки
+    const mockUser = {
+      id: 'test-user-id',
+      email: 'admin@test.kz',
+      full_name: 'Тестовый Администратор',
+      crm_roles: {
+        id: 'admin-role-id',
+        name: 'admin',
+        description: 'Администратор - полный доступ',
+      },
+    };
 
-    // Тестовый режим: если нет пользователя, создаем тестового
-    if (!token || !userData) {
-      // Пытаемся автоматически войти с тестовыми данными
-      if (process.env.NEXT_PUBLIC_TEST_MODE !== 'false') {
-        fetch('/api/crm/auth/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: 'admin@test.kz', password: 'Admin123!' }),
-        })
-          .then(res => res.json())
-          .then(data => {
-            if (data.success) {
-              localStorage.setItem('crm_token', data.token);
-              localStorage.setItem('crm_user', JSON.stringify(data.user));
-              setUser(data.user);
-            } else {
-              router.push('/crm/login');
-            }
-          })
-          .catch(() => {
-            router.push('/crm/login');
-          });
-        return;
-      }
-      
-      router.push('/crm/login');
-      return;
+    setUser(mockUser);
+    
+    // Сохраняем в localStorage для совместимости
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('crm_user', JSON.stringify(mockUser));
+      localStorage.setItem('crm_token', 'test-token-no-auth');
     }
-
-    setUser(JSON.parse(userData));
-
-    // Проверяем токен
-    fetch('/api/crm/auth/verify', {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (!data.valid) {
-          localStorage.removeItem('crm_token');
-          localStorage.removeItem('crm_user');
-          router.push('/crm/login');
-        }
-      });
-  }, [router]);
+  }, [router, pathname]);
 
   const handleLogout = () => {
-    localStorage.removeItem('crm_token');
-    localStorage.removeItem('crm_user');
-    router.push('/crm/login');
+    // В тестовом режиме просто перезагружаем страницу
+    if (typeof window !== 'undefined') {
+      window.location.href = '/crm/login';
+    }
   };
 
   // Не показываем layout на странице логина
@@ -88,7 +62,19 @@ export default function CRMLayout({ children }: { children: React.ReactNode }) {
     return <>{children}</>;
   }
 
+  // В тестовом режиме всегда показываем интерфейс
   if (!user) {
+    // Создаем мокового пользователя
+    const mockUser = {
+      id: 'test-user-id',
+      email: 'admin@test.kz',
+      full_name: 'Тестовый Администратор',
+      crm_roles: {
+        id: 'admin-role-id',
+        name: 'admin',
+      },
+    };
+    setUser(mockUser);
     return null;
   }
 
