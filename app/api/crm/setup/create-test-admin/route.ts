@@ -1,15 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseClient } from '@/lib/crm-db';
-
-// Функция хеширования пароля (та же логика, что в crm-auth.ts)
-async function hashPassword(password: string): Promise<string> {
-  const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
-  const encoder = new TextEncoder();
-  const data = encoder.encode(password + JWT_SECRET);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-}
+import { hashPassword } from '@/lib/crm-auth';
 
 // GET и POST - создать тестового администратора
 export async function GET(request: NextRequest) {

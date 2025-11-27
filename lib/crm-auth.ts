@@ -6,7 +6,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-producti
 const JWT_EXPIRES_IN = '7d';
 
 // Простая хеш-функция для паролей (в продакшене лучше использовать bcrypt на сервере)
-async function hashPassword(password: string): Promise<string> {
+export async function hashPassword(password: string): Promise<string> {
   const encoder = new TextEncoder();
   const data = encoder.encode(password + JWT_SECRET);
   const hashBuffer = await crypto.subtle.digest('SHA-256', data);
@@ -14,7 +14,7 @@ async function hashPassword(password: string): Promise<string> {
   return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
-async function comparePassword(password: string, hash: string): Promise<boolean> {
+export async function comparePassword(password: string, hash: string): Promise<boolean> {
   const passwordHash = await hashPassword(password);
   return passwordHash === hash;
 }
