@@ -9,10 +9,8 @@ export default function CRMLoginPage() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
     // Проверяем, не авторизован ли уже пользователь
     if (typeof window !== 'undefined') {
       const token = localStorage.getItem('crm_token');
@@ -47,21 +45,11 @@ export default function CRMLoginPage() {
         setError(data.error || 'Ошибка входа');
       }
     } catch (err: any) {
-      setError('Ошибка подключения к серверу: ' + err.message);
+      setError('Ошибка подключения к серверу: ' + (err.message || 'Неизвестная ошибка'));
     } finally {
       setLoading(false);
     }
   };
-
-  if (!mounted) {
-    return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ textAlign: 'center' }}>
-          <p>Загрузка...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div style={{
@@ -69,19 +57,25 @@ export default function CRMLoginPage() {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      background: 'linear-gradient(to bottom right, #eff6ff, #e0e7ff)',
-      padding: '1rem'
+      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      padding: '1rem',
+      fontFamily: 'system-ui, -apple-system, sans-serif'
     }}>
       <div style={{
         width: '100%',
-        maxWidth: '28rem',
+        maxWidth: '400px',
         background: 'white',
-        borderRadius: '0.75rem',
-        boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+        borderRadius: '12px',
+        boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
         padding: '2rem'
       }}>
-        <div style={{ marginBottom: '1.5rem', textAlign: 'center' }}>
-          <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>
+        <div style={{ marginBottom: '2rem', textAlign: 'center' }}>
+          <h1 style={{ 
+            fontSize: '2rem', 
+            fontWeight: 'bold', 
+            marginBottom: '0.5rem',
+            color: '#1f2937'
+          }}>
             Alchin CRM
           </h1>
           <p style={{ color: '#6b7280', fontSize: '0.875rem' }}>
@@ -89,9 +83,18 @@ export default function CRMLoginPage() {
           </p>
         </div>
 
-        <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
           <div>
-            <label htmlFor="email" style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: '500' }}>
+            <label 
+              htmlFor="email" 
+              style={{ 
+                display: 'block', 
+                marginBottom: '0.5rem', 
+                fontSize: '0.875rem', 
+                fontWeight: '500',
+                color: '#374151'
+              }}
+            >
               Email
             </label>
             <input
@@ -104,17 +107,34 @@ export default function CRMLoginPage() {
               disabled={loading}
               style={{
                 width: '100%',
-                padding: '0.5rem 0.75rem',
+                padding: '0.75rem',
                 border: '1px solid #d1d5db',
-                borderRadius: '0.375rem',
+                borderRadius: '0.5rem',
                 fontSize: '1rem',
-                outline: 'none'
+                outline: 'none',
+                boxSizing: 'border-box',
+                transition: 'border-color 0.2s'
+              }}
+              onFocus={(e) => {
+                e.currentTarget.style.borderColor = '#3b82f6';
+              }}
+              onBlur={(e) => {
+                e.currentTarget.style.borderColor = '#d1d5db';
               }}
             />
           </div>
 
           <div>
-            <label htmlFor="password" style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: '500' }}>
+            <label 
+              htmlFor="password" 
+              style={{ 
+                display: 'block', 
+                marginBottom: '0.5rem', 
+                fontSize: '0.875rem', 
+                fontWeight: '500',
+                color: '#374151'
+              }}
+            >
               Пароль
             </label>
             <input
@@ -127,11 +147,19 @@ export default function CRMLoginPage() {
               disabled={loading}
               style={{
                 width: '100%',
-                padding: '0.5rem 0.75rem',
+                padding: '0.75rem',
                 border: '1px solid #d1d5db',
-                borderRadius: '0.375rem',
+                borderRadius: '0.5rem',
                 fontSize: '1rem',
-                outline: 'none'
+                outline: 'none',
+                boxSizing: 'border-box',
+                transition: 'border-color 0.2s'
+              }}
+              onFocus={(e) => {
+                e.currentTarget.style.borderColor = '#3b82f6';
+              }}
+              onBlur={(e) => {
+                e.currentTarget.style.borderColor = '#d1d5db';
               }}
             />
           </div>
@@ -141,7 +169,7 @@ export default function CRMLoginPage() {
               padding: '0.75rem',
               background: '#fef2f2',
               border: '1px solid #fecaca',
-              borderRadius: '0.375rem',
+              borderRadius: '0.5rem',
               color: '#dc2626',
               fontSize: '0.875rem'
             }}>
@@ -158,11 +186,12 @@ export default function CRMLoginPage() {
               background: loading ? '#9ca3af' : '#3b82f6',
               color: 'white',
               border: 'none',
-              borderRadius: '0.375rem',
+              borderRadius: '0.5rem',
               fontSize: '1rem',
-              fontWeight: '500',
+              fontWeight: '600',
               cursor: loading ? 'not-allowed' : 'pointer',
-              transition: 'background 0.2s'
+              transition: 'background 0.2s',
+              marginTop: '0.5rem'
             }}
             onMouseOver={(e) => {
               if (!loading) {

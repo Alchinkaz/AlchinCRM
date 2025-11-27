@@ -24,6 +24,11 @@ export default function CRMLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
+    // Не проверяем авторизацию на странице логина
+    if (pathname === '/crm/login') {
+      return;
+    }
+
     const token = localStorage.getItem('crm_token');
     const userData = localStorage.getItem('crm_user');
 
@@ -53,6 +58,11 @@ export default function CRMLayout({ children }: { children: React.ReactNode }) {
     localStorage.removeItem('crm_user');
     router.push('/crm/login');
   };
+
+  // Не показываем layout на странице логина
+  if (pathname === '/crm/login') {
+    return <>{children}</>;
+  }
 
   if (!user) {
     return null;
