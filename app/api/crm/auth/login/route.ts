@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { loginUser } from '@/lib/crm-auth';
+import { getSupabaseClient } from '@/lib/crm-db';
+import { hashPassword } from '@/lib/crm-auth';
+
+// Тестовый режим - автоматическое создание пользователя если не существует
+const TEST_MODE = process.env.TEST_MODE !== 'false'; // По умолчанию включен
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,6 +18,72 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Тестовый режим: автоматическое создание тестового администратора
+    if (TEST_MODE && email === 'admin@test.kz' && password === 'Admin123!') {
+      const supabase = getSupabaseClient();
+      
+      // Проверяем, существует ли пользователь
+      const { data: existingUser } = await supabase
+        .from('crm_users')
+        .select('*, crm_roles(*)')
+        .eq('email', email)
+        .single();
+
+      let user = existingUser;
+
+      // Если пользователя нет, создаем его
+      if (!existingUser) {
+        const { data: adminRole } = await supabase
+          .from('crm_roles')
+          .select('id')
+          .eq('name', 'admin')
+          .single();
+
+        if (adminRole) {
+          const passwordHash = await hashPassword(password);
+          const { data: newUser } = await supabase
+            .from('crm_users')
+            .insert({
+              email,
+              password_hash: passwordHash,
+              full_name: 'Тестовый Администратор',
+              role_id: adminRole.id,
+              is_active: true,
+            })
+            .select('*, crm_roles(*)')
+            .single();
+
+          if (newUser) {
+            user = newUser;
+          }
+        }
+      }
+
+      // Если пользователь существует или был создан, генерируем токен
+      if (user) {
+        const expiresIn = 7 * 24 * 60 * 60;
+        const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
+        const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+        const payload = btoa(JSON.stringify({
+          userId: user.id,
+          email: user.email,
+          exp: Math.floor(Date.now() / 1000) + expiresIn,
+        })).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+        const signature = btoa(JWT_SECRET + header + payload).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+        const token = `${header}.${payload}.${signature}`;
+
+        const { password_hash, ...userWithoutPassword } = user;
+        
+        return NextResponse.json({
+          success: true,
+          user: userWithoutPassword,
+          token: token,
+          testMode: true,
+        });
+      }
+    }
+
+    // Обычная проверка входа
     const result = await loginUser(email, password);
 
     if (!result.success) {

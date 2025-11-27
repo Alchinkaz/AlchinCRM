@@ -32,7 +32,31 @@ export default function CRMLayout({ children }: { children: React.ReactNode }) {
     const token = localStorage.getItem('crm_token');
     const userData = localStorage.getItem('crm_user');
 
+    // Тестовый режим: если нет пользователя, создаем тестового
     if (!token || !userData) {
+      // Пытаемся автоматически войти с тестовыми данными
+      if (process.env.NEXT_PUBLIC_TEST_MODE !== 'false') {
+        fetch('/api/crm/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: 'admin@test.kz', password: 'Admin123!' }),
+        })
+          .then(res => res.json())
+          .then(data => {
+            if (data.success) {
+              localStorage.setItem('crm_token', data.token);
+              localStorage.setItem('crm_user', JSON.stringify(data.user));
+              setUser(data.user);
+            } else {
+              router.push('/crm/login');
+            }
+          })
+          .catch(() => {
+            router.push('/crm/login');
+          });
+        return;
+      }
+      
       router.push('/crm/login');
       return;
     }
