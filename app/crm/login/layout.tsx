@@ -4,6 +4,10 @@ export default function LoginLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <>{children}</>;
+  return (
+    <div style={{ minHeight: '100vh' }}>
+      {children}
+    </div>
+  );
 }
 

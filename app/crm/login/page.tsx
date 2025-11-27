@@ -2,10 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function CRMLoginPage() {
   const router = useRouter();
@@ -18,9 +14,11 @@ export default function CRMLoginPage() {
   useEffect(() => {
     setMounted(true);
     // Проверяем, не авторизован ли уже пользователь
-    const token = localStorage.getItem('crm_token');
-    if (token) {
-      router.push('/crm/dashboard');
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('crm_token');
+      if (token) {
+        router.push('/crm/dashboard');
+      }
     }
   }, [router]);
 
@@ -39,15 +37,17 @@ export default function CRMLoginPage() {
       const data = await response.json();
 
       if (data.success) {
-        localStorage.setItem('crm_token', data.token);
-        localStorage.setItem('crm_user', JSON.stringify(data.user));
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('crm_token', data.token);
+          localStorage.setItem('crm_user', JSON.stringify(data.user));
+        }
         router.push('/crm/dashboard');
         router.refresh();
       } else {
         setError(data.error || 'Ошибка входа');
       }
     } catch (err: any) {
-      setError('Ошибка подключения к серверу');
+      setError('Ошибка подключения к серверу: ' + err.message);
     } finally {
       setLoading(false);
     }
@@ -55,8 +55,8 @@ export default function CRMLoginPage() {
 
   if (!mounted) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ textAlign: 'center' }}>
           <p>Загрузка...</p>
         </div>
       </div>
@@ -64,54 +64,121 @@ export default function CRMLoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-      <Card className="w-full max-w-md shadow-lg">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">Alchin CRM</CardTitle>
-          <CardDescription className="text-center">
+    <div style={{
+      minHeight: '100vh',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      background: 'linear-gradient(to bottom right, #eff6ff, #e0e7ff)',
+      padding: '1rem'
+    }}>
+      <div style={{
+        width: '100%',
+        maxWidth: '28rem',
+        background: 'white',
+        borderRadius: '0.75rem',
+        boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+        padding: '2rem'
+      }}>
+        <div style={{ marginBottom: '1.5rem', textAlign: 'center' }}>
+          <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>
+            Alchin CRM
+          </h1>
+          <p style={{ color: '#6b7280', fontSize: '0.875rem' }}>
             Войдите в систему для продолжения
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleLogin} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="your@email.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                disabled={loading}
-                className="w-full"
-              />
+          </p>
+        </div>
+
+        <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <div>
+            <label htmlFor="email" style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: '500' }}>
+              Email
+            </label>
+            <input
+              id="email"
+              type="email"
+              placeholder="your@email.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              disabled={loading}
+              style={{
+                width: '100%',
+                padding: '0.5rem 0.75rem',
+                border: '1px solid #d1d5db',
+                borderRadius: '0.375rem',
+                fontSize: '1rem',
+                outline: 'none'
+              }}
+            />
+          </div>
+
+          <div>
+            <label htmlFor="password" style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: '500' }}>
+              Пароль
+            </label>
+            <input
+              id="password"
+              type="password"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              disabled={loading}
+              style={{
+                width: '100%',
+                padding: '0.5rem 0.75rem',
+                border: '1px solid #d1d5db',
+                borderRadius: '0.375rem',
+                fontSize: '1rem',
+                outline: 'none'
+              }}
+            />
+          </div>
+
+          {error && (
+            <div style={{
+              padding: '0.75rem',
+              background: '#fef2f2',
+              border: '1px solid #fecaca',
+              borderRadius: '0.375rem',
+              color: '#dc2626',
+              fontSize: '0.875rem'
+            }}>
+              {error}
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Пароль</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                disabled={loading}
-                className="w-full"
-              />
-            </div>
-            {error && (
-              <div className="text-sm text-red-600 bg-red-50 p-3 rounded-md border border-red-200">
-                {error}
-              </div>
-            )}
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? 'Вход...' : 'Войти'}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
+          )}
+
+          <button
+            type="submit"
+            disabled={loading}
+            style={{
+              width: '100%',
+              padding: '0.75rem',
+              background: loading ? '#9ca3af' : '#3b82f6',
+              color: 'white',
+              border: 'none',
+              borderRadius: '0.375rem',
+              fontSize: '1rem',
+              fontWeight: '500',
+              cursor: loading ? 'not-allowed' : 'pointer',
+              transition: 'background 0.2s'
+            }}
+            onMouseOver={(e) => {
+              if (!loading) {
+                e.currentTarget.style.background = '#2563eb';
+              }
+            }}
+            onMouseOut={(e) => {
+              if (!loading) {
+                e.currentTarget.style.background = '#3b82f6';
+              }
+            }}
+          >
+            {loading ? 'Вход...' : 'Войти'}
+          </button>
+        </form>
+      </div>
     </div>
   );
 }
-
